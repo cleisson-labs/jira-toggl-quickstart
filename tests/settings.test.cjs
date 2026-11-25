@@ -4,6 +4,7 @@ const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const path = require("node:path");
 const test = require("node:test");
+const { pathToFileURL } = require("node:url");
 const vm = require("node:vm");
 
 const ROOT = path.join(__dirname, "..");
@@ -134,7 +135,7 @@ function createHarness({ initialSettings = null, permissions = [JIRA_MATCH] } = 
     setTimeout,
     clearTimeout
   });
-  vm.runInContext(BACKGROUND_SOURCE, context, { filename: "background.js" });
+  vm.runInContext(BACKGROUND_SOURCE, context, { filename: pathToFileURL(path.join(ROOT, "background.js")).href });
 
   return { context, storage, fetchQueue, requests, registeredScripts };
 }

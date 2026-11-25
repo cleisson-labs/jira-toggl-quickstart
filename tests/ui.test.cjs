@@ -141,15 +141,6 @@ test("side panel contains a manual timer form shown when no timer is running", (
 
 test("manifest uses runtime Jira host permission and has no hard-coded company Jira host", () => {
   const manifest = JSON.parse(read("manifest.json"));
-  const source = [
-    read("manifest.json"),
-    read("background.js"),
-    read("content.js"),
-    read("options.html"),
-    read("options.js"),
-    read("popup.html"),
-    read("popup.js")
-  ].join("\n");
 
   assert.deepEqual(manifest.optional_host_permissions, ["https://*/*"]);
   assert.deepEqual(manifest.host_permissions, ["https://api.track.toggl.com/*"]);
@@ -449,8 +440,8 @@ test("side panel keeps live daily and weekly totals local and refreshes after ti
   assert.match(script, /START_TODAY_APPOINTMENT/);
   assert.match(script, /calculatedAt/);
   assert.match(script, /window\.setInterval\(updateLiveValues, 1000\)/);
-  assert.match(script, /await loadState\(\);\n  showWorklogResult\(worklogResult/);
-  assert.match(script, /await loadState\(\);\n  if \(previousResult\)/);
+  assert.match(script, /await loadState\(\);\n {2}showWorklogResult\(worklogResult/);
+  assert.match(script, /await loadState\(\);\n {2}if \(previousResult\)/);
 });
 
 test("Jira copy uses the explicit clipboard API without a broad permission", () => {

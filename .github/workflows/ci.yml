@@ -4,22 +4,103 @@ on:
   push:
     branches: [main]
   pull_request:
-    branches: [main]
+  workflow_dispatch:
+  schedule:
+    - cron: "38 4 * * 2"
 
 permissions:
   contents: read
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
+  extension:
+    uses: cleisson-labs/.github/.github/workflows/node.yml@03f53ed9e71b2741c683c448a538f7a7b8aa1786 # v1.0.0
+
   validate:
+    # Existing branch protections require this status while consumers adopt ci-ok.
+    if: ${{ always() }}
+    needs: extension
+    outputs:
+      release: ${{ steps.changes.outputs.release }}
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     steps:
-      - name: Check out repository
-        uses: actions/checkout@v6
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v6
+      - name: Require extension validation
+        env:
+          RESULT: ${{ needs.extension.result }}
+        run: test "$RESULT" = success
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          node-version: 24
+          persist-credentials: false
+          fetch-depth: 0
+      - id: changes
+        name: Detect changes that need release packaging
+        env:
+          BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
+        run: |
+          release=true
+          if [[ "$BASE" =~ ^[0-9a-f]{40}$ ]] && git cat-file -e "$BASE^{commit}"; then
+            git diff --no-renames --name-only -z "$BASE" "$GITHUB_SHA" > "$RUNNER_TEMP/changed"
+            release=false
+            while IFS= read -r -d '' path; do
+              case "$path" in
+                CHANGELOG.md) ;;
+                *.md | *.markdown) continue ;;
+              esac
+              release=true
+              break
+            done < "$RUNNER_TEMP/changed"
+          fi
+          echo "release=$release" >> "$GITHUB_OUTPUT"
+      - name: Check JavaScript whitespace against .editorconfig
+        run: |
+          empty=$(git hash-object -t tree /dev/null)
+          git -c core.whitespace=trailing-space,space-before-tab,tab-in-indent \
+            diff --check "$empty" HEAD -- '*.js' '*.cjs'
 
-      - name: Validate extension
-        run: npm run validate
+  release:
+    needs: validate
+    if: needs.validate.outputs.release == 'true'
+    permissions:
+      contents: read
+    uses: $/.github/workflows/release-build.yml
+
+  security:
+    uses: cleisson-labs/.github/.github/workflows/security.yml@03f53ed9e71b2741c683c448a538f7a7b8aa1786 # v1.0.0
+
+  docs:
+    uses: cleisson-labs/.github/.github/workflows/docs.yml@03f53ed9e71b2741c683c448a538f7a7b8aa1786 # v1.0.0
+    with:
+      external: ${{ github.event_name == 'schedule' }}
+
+  codeql:
+    permissions:
+      contents: read
+      security-events: write
+    strategy:
+      fail-fast: false
+      matrix:
+        language: [javascript-typescript, actions]
+    uses: cleisson-labs/.github/.github/workflows/codeql.yml@03f53ed9e71b2741c683c448a538f7a7b8aa1786 # v1.0.0
+    with:
+      language: ${{ matrix.language }}
+
+  ci-ok:
+    if: ${{ always() }}
+    needs: [validate, security, docs, codeql, release]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions: {}
+    steps:
+      - name: Require every CI job to succeed
+        env:
+          RESULTS: ${{ toJSON(needs) }}
+        run: |
+          jq -e '
+            all(del(.release)[]; .result == "success") and
+            ((.validate.outputs.release == "true" and .release.result == "success") or
+             (.validate.outputs.release == "false" and .release.result == "skipped"))
+          ' <<< "$RESULTS"

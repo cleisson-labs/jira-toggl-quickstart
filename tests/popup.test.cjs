@@ -4,6 +4,7 @@ const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const path = require("node:path");
 const test = require("node:test");
+const { pathToFileURL } = require("node:url");
 const vm = require("node:vm");
 
 const SOURCE = fs.readFileSync(path.join(__dirname, "..", "popup.js"), "utf8");
@@ -134,7 +135,7 @@ function createPopupHarness({
     }
   });
 
-  vm.runInContext(SOURCE, context, { filename: "popup.js" });
+  vm.runInContext(SOURCE, context, { filename: pathToFileURL(path.join(__dirname, "..", "popup.js")).href });
   return {
     context,
     documentListeners,

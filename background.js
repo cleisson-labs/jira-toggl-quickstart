@@ -2681,7 +2681,7 @@ function unwrapPayload(payload) {
     payload &&
     typeof payload === "object" &&
     !Array.isArray(payload) &&
-    Object.prototype.hasOwnProperty.call(payload, "data")
+    Object.hasOwn(payload, "data")
   ) {
     return payload.data;
   }

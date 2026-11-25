@@ -4,17 +4,9 @@
   "version": "1.0.0",
   "description": "Start and replay Toggl work from Jira with today's entries, flexible controls, and optional Work Log sync.",
   "minimum_chrome_version": "114",
-  "permissions": [
-    "scripting",
-    "sidePanel",
-    "storage"
-  ],
-  "host_permissions": [
-    "https://api.track.toggl.com/*"
-  ],
-  "optional_host_permissions": [
-    "https://*/*"
-  ],
+  "permissions": ["scripting", "sidePanel", "storage"],
+  "host_permissions": ["https://api.track.toggl.com/*"],
+  "optional_host_permissions": ["https://*/*"],
   "background": {
     "service_worker": "background.js"
   },

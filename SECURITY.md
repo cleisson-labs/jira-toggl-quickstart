@@ -49,4 +49,4 @@ Project selection is optional. A manually entered project is validated, an eligi
 
 ## Reporting a vulnerability
 
-Do not publish active credentials, browser-session data, clipboard content, or sensitive Jira content in a public issue. Share a minimal reproduction that contains no secrets, then rotate any credential that may have been exposed.
+Do not publish active credentials, browser-session data, clipboard content, or sensitive Jira content in a public issue. Rotate any exposed credential and send a minimal reproduction through [GitHub private vulnerability reporting](https://github.com/cleisson-labs/jira-toggl-quickstart/security/advisories/new).

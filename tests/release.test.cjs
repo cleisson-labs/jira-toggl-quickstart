@@ -4,18 +4,23 @@ const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const path = require("node:path");
 const test = require("node:test");
+const { releaseNotes } = require("../scripts/release-notes.cjs");
 
-const ROOT = path.join(__dirname, "..");
-
-test("GitHub releases prepend the matching changelog to generated notes", () => {
-  const workflow = fs.readFileSync(
-    path.join(ROOT, ".github/workflows/release.yml"),
-    "utf8"
+test("GitHub releases prepend only the matching changelog section to generated notes", () => {
+  const changelog =
+    "# Changelog\n\n## Unreleased\n\n## 2.0.0 — today\n\n- Current\n\n## 1.0.0\n\n- Earlier";
+  assert.equal(
+    releaseNotes(changelog, "2.0.0"),
+    "## 2.0.0 — today\n\n- Current",
   );
-  const changelogNotes = workflow.indexOf('--notes "${changelog}"');
-  const generatedNotes = workflow.indexOf("--generate-notes");
-
-  assert.match(workflow, /awk -v version="\$\{version\}"[\s\S]*CHANGELOG\.md/);
-  assert.ok(changelogNotes >= 0, "expected changelog content in the release body");
-  assert.ok(generatedNotes > changelogNotes, "expected generated compare notes afterward");
+  assert.throws(() => releaseNotes(changelog, "0.1.0"), /Missing changelog/);
+  const workflow = fs.readFileSync(
+    path.join(__dirname, "../.github/workflows/release.yml"),
+    "utf8",
+  );
+  assert.match(
+    workflow,
+    /notes: \$\{\{ fromJSON\(needs\.build\.outputs\.notes\) \}\}/,
+  );
+  assert.match(workflow, /generate-notes: true/);
 });

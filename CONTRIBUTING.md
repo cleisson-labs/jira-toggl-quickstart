@@ -11,6 +11,7 @@ Thank you for improving Jira → Toggl Quick Start.
 5. Run:
 
 ```bash
+npm ci --ignore-scripts
 npm run validate
 ```
 

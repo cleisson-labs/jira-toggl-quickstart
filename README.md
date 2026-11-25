@@ -4,8 +4,10 @@
   <img src="icons/icon128.png" width="128" height="128" alt="Jira → Toggl Quick Start icon" />
 </p>
 
-[![CI](https://github.com/cleisson-labs/jira-toggl-quickstart/actions/workflows/ci.yml/badge.svg)](https://github.com/cleisson-labs/jira-toggl-quickstart/actions/workflows/ci.yml)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![CI](https://github.com/cleisson-labs/jira-toggl-quickstart/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/cleisson-labs/jira-toggl-quickstart/actions/workflows/ci.yml)
+[![License](https://img.shields.io/github/license/cleisson-labs/jira-toggl-quickstart)](LICENSE)
+[![Latest release](https://img.shields.io/github/v/release/cleisson-labs/jira-toggl-quickstart)](https://github.com/cleisson-labs/jira-toggl-quickstart/releases/latest)
+[![Coverage report](https://img.shields.io/badge/coverage-CI_report-blue)](https://github.com/cleisson-labs/jira-toggl-quickstart/actions/workflows/ci.yml?query=branch%3Amain)
 
 > Independent open-source project. Not affiliated with, endorsed by, or sponsored by Atlassian or Toggl.
 
@@ -231,13 +233,14 @@ See [PRIVACY.md](PRIVACY.md) and [SECURITY.md](SECURITY.md) for more details.
 
 ## Development
 
-No package installation is required. Run:
+Use Node.js 20 or newer and install the locked development tools to run the same validation as CI.
 
 ```bash
+npm ci --ignore-scripts
 npm run validate
 ```
 
-This command checks JavaScript syntax, validates `manifest.json`, and runs mocked service-worker, content-script, side-panel, settings, and UI contract tests. Coverage includes optional and automatic project selection, daily/weekly/per-appointment totals, replay validation and switching, floating positions, running-entry semantics, toolbar icon states, Jira progress, ADF-to-Markdown conversion, clipboard states, Work Log creation, retries, duplicate prevention, external-stop reconciliation, and icon dimensions.
+Validation checks JavaScript syntax, lints the extension and its tests with Biome, checks formatting for JSON and release tooling, and runs the native Node.js tests with V8 coverage. CI also checks whitespace across all JavaScript files against the repository’s EditorConfig conventions. The extension ZIP contains only the runtime files. Coverage includes optional and automatic project selection, daily/weekly/per-appointment totals, replay validation and switching, floating positions, running-entry semantics, toolbar icon states, Jira progress, ADF-to-Markdown conversion, clipboard states, Work Log creation, retries, duplicate prevention, external-stop reconciliation, and icon dimensions.
 
 ## Project structure
 

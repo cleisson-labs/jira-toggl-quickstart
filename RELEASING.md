@@ -4,7 +4,7 @@
 
 1. Update `version` in `manifest.json` and `package.json` to the same value.
 2. Add release notes to `CHANGELOG.md` and update user-facing documentation and privacy disclosures.
-3. Run `npm run validate`.
+3. Run `npm ci --ignore-scripts` and `npm run validate`.
 4. Run `node --check background.js`, `node --check content.js`, `node --check options.js`, `node --check popup.js`, and `git diff --check`.
 5. Confirm Settings has no API-token input. While signed in to Toggl Accounts and with `https://track.toggl.com/timer` open, click **Connect Toggl**, approve only `https://accounts.toggl.com/*` and `https://track.toggl.com/*`, and verify the connected account. Repeat with each web session unavailable: confirm the fixed Accounts login or Track timer page opens, make that session ready, and click **Retry connection**. Confirm denial, malformed-session/profile, blocked-cookie, and failed-validation paths do not replace an existing connection, and **Remove settings** removes both Toggl grants or reports that Chrome could not remove them.
 6. Load the project through `chrome://extensions`, confirm Chrome 114 or newer, and verify that the toolbar action toggles a persistent side panel rather than a popup. Manually test optional-project and automatic-project setup, Jira start/stop, side-panel manual start/stop, Worked today, Worked this week, default/running icon transitions, Jira progress below/equal/above estimate, billable and non-billable timers, automatic Work Log sync, manual Work Log confirmation, and retry behavior.
@@ -16,7 +16,7 @@
 12. Test a blank Project ID with related Toggl project data: the active project with the highest `actual_hours` in the selected workspace must be populated automatically.
 13. Test a workspace with no active project: new timers must remain usable and omit `project_id`.
 14. Confirm synchronized Jira Work Logs reduce the remaining estimate, `sidePanel` is the only intentional new required permission, `minimum_chrome_version` is 114, and the package keeps `manifest.json` at the ZIP root.
-15. Open a release pull request against `main`. Wait for the strict `validate` check, resolve every review thread, obtain the required approval, and merge the reviewed pull request before tagging.
+15. Open a release pull request against `main`. Wait for `ci-ok`, resolve every review thread, and merge the pull request before tagging.
 
 ## Create a release
 
@@ -27,6 +27,6 @@ git tag -a v1.0.0 -m "Release v1.0.0"
 git push origin v1.0.0
 ```
 
-The `Release extension package` workflow validates the project, creates a minimal Chrome Web Store ZIP, produces its SHA-256 checksum, attaches both files to a GitHub release, and prepends the matching changelog section to the generated comparison notes.
+The `Release extension package` workflow validates the project, creates a minimal Chrome Web Store ZIP, produces its SHA-256 checksum, attests both files and verifies their SHA-256 digests on a draft before publication, and prepends the matching changelog section to the generated comparison notes.
 
 Never commit or upload a Chrome Web Store private signing key, a Toggl token, Jira credentials, browser cookies, clipboard content, or production issue data.

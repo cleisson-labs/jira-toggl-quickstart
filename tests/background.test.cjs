@@ -4,6 +4,7 @@ const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const path = require("node:path");
 const test = require("node:test");
+const { pathToFileURL } = require("node:url");
 const vm = require("node:vm");
 
 const BACKGROUND_SOURCE = fs.readFileSync(
@@ -92,7 +93,7 @@ function createHarness({
         },
         async get(key) {
           if (typeof key === "string") {
-            return Object.prototype.hasOwnProperty.call(storage, key)
+            return Object.hasOwn(storage, key)
               ? { [key]: structuredClone(storage[key]) }
               : {};
           }
@@ -230,7 +231,7 @@ function createHarness({
     setTimeout,
     clearTimeout
   });
-  vm.runInContext(BACKGROUND_SOURCE, context, { filename: "background.js" });
+  vm.runInContext(BACKGROUND_SOURCE, context, { filename: pathToFileURL(path.join(__dirname, "..", "background.js")).href });
 
   return {
     context,

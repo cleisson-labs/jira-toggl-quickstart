@@ -1,0 +1,66 @@
+name: Build and verify release assets
+
+on:
+  workflow_call:
+    outputs:
+      artifact-id:
+        description: Verified release bundle
+        value: ${{ jobs.assets.outputs.artifact-id }}
+      notes:
+        description: Matching changelog section, encoded as a JSON string
+        value: ${{ jobs.build.outputs.notes }}
+
+permissions: {}
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    outputs:
+      archive: ${{ steps.package.outputs.archive }}
+      notes: ${{ steps.package.outputs.notes }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+          package-manager-cache: false
+      # CI validates branch builds independently; validate again for the release tag.
+      - name: Validate extension
+        if: github.ref_type == 'tag'
+        run: |
+          npm ci --ignore-scripts
+          npm run validate
+      - name: Check the release version and package the Chrome Web Store ZIP
+        id: package
+        run: |
+          version=$(node -p 'require("./manifest.json").version')
+          tag="v$version"
+          if [[ "$GITHUB_REF_TYPE" == tag ]]; then test "$GITHUB_REF_NAME" = "$tag"; fi
+          test "$(node -p 'require("./package.json").version')" = "$version"
+          archive="jira-toggl-quickstart-$tag.zip"
+          zip -r "$archive" manifest.json background.js content.js options.css options.html \
+            options.js popup.css popup.html popup.js icons
+          unzip -t "$archive"
+          echo "archive=$archive" >> "$GITHUB_OUTPUT"
+          node scripts/release-notes.cjs >> "$GITHUB_OUTPUT"
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: release-part-extension
+          path: ${{ steps.package.outputs.archive }}
+          if-no-files-found: error
+          retention-days: ${{ github.ref_type != 'tag' && github.event_name != 'workflow_dispatch' && 3 || 0 }}
+          compression-level: 0
+          overwrite: true
+
+  assets:
+    needs: build
+    permissions:
+      contents: read
+    uses: cleisson-labs/.github/.github/workflows/release-assets.yml@03f53ed9e71b2741c683c448a538f7a7b8aa1786 # v1.0.0
+    with:
+      assets: ${{ needs.build.outputs.archive }}

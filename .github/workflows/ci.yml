@@ -74,7 +74,7 @@ jobs:
   docs:
     uses: cleisson-labs/.github/.github/workflows/docs.yml@03f53ed9e71b2741c683c448a538f7a7b8aa1786 # v1.0.0
     with:
-      external: ${{ github.event_name == 'schedule' }}
+      external: ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' }}
 
   codeql:
     permissions:

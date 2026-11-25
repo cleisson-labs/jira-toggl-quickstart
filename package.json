@@ -11,12 +11,12 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/cleissonom/jira-toggl-quickstart.git"
+    "url": "git+https://github.com/cleisson-labs/jira-toggl-quickstart.git"
   },
   "bugs": {
-    "url": "https://github.com/cleissonom/jira-toggl-quickstart/issues"
+    "url": "https://github.com/cleisson-labs/jira-toggl-quickstart/issues"
   },
-  "homepage": "https://github.com/cleissonom/jira-toggl-quickstart#readme",
+  "homepage": "https://github.com/cleisson-labs/jira-toggl-quickstart#readme",
   "engines": {
     "node": ">=20"
   }

@@ -4,7 +4,7 @@
   <img src="icons/icon128.png" width="128" height="128" alt="Jira → Toggl Quick Start icon" />
 </p>
 
-[![CI](https://github.com/cleissonom/jira-toggl-quickstart/actions/workflows/ci.yml/badge.svg)](https://github.com/cleissonom/jira-toggl-quickstart/actions/workflows/ci.yml)
+[![CI](https://github.com/cleisson-labs/jira-toggl-quickstart/actions/workflows/ci.yml/badge.svg)](https://github.com/cleisson-labs/jira-toggl-quickstart/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 > Independent open-source project. Not affiliated with, endorsed by, or sponsored by Atlassian or Toggl.

@@ -8,6 +8,7 @@
 [![License](https://img.shields.io/github/license/cleisson-labs/jira-toggl-quickstart)](LICENSE)
 [![Latest release](https://img.shields.io/github/v/release/cleisson-labs/jira-toggl-quickstart)](https://github.com/cleisson-labs/jira-toggl-quickstart/releases/latest)
 [![Coverage report](https://img.shields.io/badge/coverage-CI_report-blue)](https://github.com/cleisson-labs/jira-toggl-quickstart/actions/workflows/ci.yml?query=branch%3Amain)
+[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/cleisson-labs/jira-toggl-quickstart/badge)](https://scorecard.dev/viewer/?uri=github.com/cleisson-labs/jira-toggl-quickstart)
 
 > Independent open-source project. Not affiliated with, endorsed by, or sponsored by Atlassian or Toggl.
 

@@ -92,7 +92,7 @@ The collapsed **Advanced settings** section contains:
 2. Click the floating **Start in Toggl** button.
 3. Click **Stop in Toggl** when the same issue is running.
 
-The adjacent **Copy** action prepares a Markdown document containing the selected issue key, summary, and description. Jira Cloud Atlassian Document Format is converted locally; plain-string descriptions are also supported. The clipboard is written only after the user clicks **Copy**. Settings can place this action group in the top-left, top-right, bottom-left, or bottom-right corner.
+The adjacent **Copy** action prepares a Markdown document containing the selected issue key, summary, and description. Jira Cloud Atlassian Document Format is converted locally; plain-string descriptions are also supported. Copied tables preserve Windows paths and literal pipe characters in both plain text and inline code. The clipboard is written only after the user clicks **Copy**. Settings can place this action group in the top-left, top-right, bottom-left, or bottom-right corner.
 
 ### Start a manual timer
 

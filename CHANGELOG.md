@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Fixed copied Jira tables so Windows paths and literal pipe characters survive Markdown rendering.
+
 ## 1.0.0 — 2026-08-25
 
 - Promoted Jira → Toggl Quick Start to its first stable release.

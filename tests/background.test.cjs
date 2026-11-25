@@ -3391,6 +3391,26 @@ test("converts ADF tables and safely degrades unknown nodes through their childr
   assert.match(markdown, /\| A \| B \|/);
 });
 
+test("preserves Windows paths and pipe characters in plain and code-marked ADF table cells", () => {
+  const harness = createHarness();
+  const path = String.raw`C:\Build\_notes | ready`;
+  const cell = (marks) => ({
+    type: "tableCell",
+    content: [{ type: "paragraph", content: [{ type: "text", text: path, marks }] }]
+  });
+  const markdown = harness.context.adfToMarkdown({
+    type: "table",
+    content: [{ type: "tableRow", content: [cell([]), cell([{ type: "code" }])] }]
+  });
+
+  const plainCell = String.raw`C:\\Build\\_notes \| ready`;
+  const codeCell = String.raw`C:\Build\_notes \| ready`;
+  assert.equal(markdown, [
+    `| ${plainCell} | \`${codeCell}\` |`,
+    "| --- | --- |"
+  ].join("\n"));
+});
+
 test("builds the exact Jira clipboard document structure", () => {
   const harness = createHarness();
   const document = harness.context.buildJiraClipboardDocument({

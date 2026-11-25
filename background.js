@@ -1677,7 +1677,7 @@ function renderAdfNode(node, context = {}) {
     }
 
     case "text":
-      return renderAdfText(node);
+      return renderAdfText(node, context.inTable);
 
     case "hardBreak":
       return "\\\n";
@@ -1687,10 +1687,10 @@ function renderAdfNode(node, context = {}) {
 
     case "bulletList":
     case "orderedList":
-      return `${renderAdfList(node, context.listDepth || 0)}\n\n`;
+      return `${renderAdfList(node, context)}\n\n`;
 
     case "taskList":
-      return `${renderAdfTaskList(node, context.listDepth || 0)}\n\n`;
+      return `${renderAdfTaskList(node, context)}\n\n`;
 
     case "listItem":
     case "taskItem":
@@ -1702,19 +1702,19 @@ function renderAdfNode(node, context = {}) {
     }
 
     case "codeBlock": {
-      const code = extractAdfPlainText(node).replace(/\n$/, "");
+      const code = escapeAdfTableText(extractAdfPlainText(node).replace(/\n$/, ""), context.inTable, true);
       const fence = chooseCodeFence(code);
       const language = String(node.attrs?.language || "").replace(/[^A-Za-z0-9_+.-]/g, "");
       return `${fence}${language}\n${code}\n${fence}\n\n`;
     }
 
     case "mention":
-      return `@${normalizeWhitespace(
+      return `@${escapeAdfTableText(normalizeWhitespace(
         node.attrs?.text || node.attrs?.displayName || node.attrs?.id || "mention"
-      ).replace(/^@/, "")}`;
+      ).replace(/^@/, ""), context.inTable)}`;
 
     case "emoji":
-      return String(node.attrs?.text || node.attrs?.shortName || node.attrs?.id || "");
+      return escapeAdfTableText(String(node.attrs?.text || node.attrs?.shortName || node.attrs?.id || ""), context.inTable);
 
     case "table":
       return `${renderAdfTable(node)}\n\n`;
@@ -1729,10 +1729,18 @@ function renderAdfNode(node, context = {}) {
   }
 }
 
-function renderAdfText(node) {
-  let text = String(node.text || "");
+function escapeAdfTableText(text, inTable, code = false) {
+  if (!inTable) {
+    return text;
+  }
+  // Pipes delimit table cells even in code spans, where backslashes are already literal.
+  return text.replace(/[\\|]/g, (character) => code && character === "\\" ? character : `\\${character}`);
+}
+
+function renderAdfText(node, inTable) {
   const marks = Array.isArray(node.marks) ? node.marks : [];
-  const codeMark = marks.find((mark) => mark?.type === "code");
+  const codeMark = marks.some((mark) => mark?.type === "code");
+  let text = escapeAdfTableText(String(node.text || ""), inTable, codeMark);
 
   if (codeMark) {
     const fence = chooseInlineCodeFence(text);
@@ -1751,52 +1759,53 @@ function renderAdfText(node) {
     } else if (mark.type === "strike") {
       text = `~~${text}~~`;
     } else if (mark.type === "link" && mark.attrs?.href) {
-      text = `[${text}](${String(mark.attrs.href)})`;
+      text = `[${text}](${escapeAdfTableText(String(mark.attrs.href), inTable)})`;
     }
   }
 
   return text;
 }
 
-function renderAdfList(node, depth) {
+function renderAdfList(node, context) {
   const items = (Array.isArray(node.content) ? node.content : [])
     .filter((item) => item?.type === "listItem");
   const ordered = node.type === "orderedList";
   const firstNumber = Math.max(1, Number(node.attrs?.order) || 1);
-  const indent = "  ".repeat(depth);
+  const indent = "  ".repeat(context.listDepth || 0);
 
   return items.map((item, index) => {
     const prefix = ordered ? `${firstNumber + index}. ` : "- ";
-    return renderAdfListItem(item, indent, prefix, depth);
+    return renderAdfListItem(item, indent, prefix, context);
   }).join("\n");
 }
 
-function renderAdfTaskList(node, depth) {
+function renderAdfTaskList(node, context) {
   const items = (Array.isArray(node.content) ? node.content : [])
     .filter((item) => item?.type === "taskItem");
-  const indent = "  ".repeat(depth);
+  const indent = "  ".repeat(context.listDepth || 0);
 
   return items.map((item) => {
     const checked = item.attrs?.state === "DONE" || item.attrs?.state === "done";
-    return renderAdfListItem(item, indent, `- [${checked ? "x" : " "}] `, depth);
+    return renderAdfListItem(item, indent, `- [${checked ? "x" : " "}] `, context);
   }).join("\n");
 }
 
-function renderAdfListItem(item, indent, prefix, depth) {
+function renderAdfListItem(item, indent, prefix, context) {
   const children = Array.isArray(item.content) ? item.content : [];
   const bodyParts = [];
   const nestedParts = [];
+  const childContext = { ...context, listDepth: (context.listDepth || 0) + 1 };
 
   for (const child of children) {
     if (["bulletList", "orderedList", "taskList"].includes(child?.type)) {
       const rendered = child.type === "taskList"
-        ? renderAdfTaskList(child, depth + 1)
-        : renderAdfList(child, depth + 1);
+        ? renderAdfTaskList(child, childContext)
+        : renderAdfList(child, childContext);
       if (rendered) {
         nestedParts.push(rendered);
       }
     } else {
-      const rendered = normalizeMarkdown(renderAdfNode(child, { listDepth: depth + 1 }));
+      const rendered = normalizeMarkdown(renderAdfNode(child, childContext));
       if (rendered) {
         bodyParts.push(rendered);
       }
@@ -1821,9 +1830,8 @@ function renderAdfTable(node) {
     .filter((row) => row?.type === "tableRow")
     .map((row) => (Array.isArray(row.content) ? row.content : [])
       .filter((cell) => ["tableHeader", "tableCell"].includes(cell?.type))
-      .map((cell) => normalizeMarkdown(renderAdfNode(cell, {}))
-        .replace(/\n+/g, " / ")
-        .replace(/\|/g, "\\|") || " "));
+      .map((cell) => normalizeMarkdown(renderAdfNode(cell, { inTable: true }))
+        .replace(/\n+/g, " / ") || " "));
 
   if (rows.length === 0) {
     return "";
